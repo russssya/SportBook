@@ -11,4 +11,6 @@
     <string name="save">Save</string>
     <string name="choose_date">Choose the date</string>
     <string name="title">Title</string>
+    <string name="pin">Pin/Unpin</string>
+    <string name="delete">Delete</string>
 </resources>

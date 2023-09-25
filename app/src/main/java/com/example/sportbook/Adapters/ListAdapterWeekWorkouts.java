@@ -9,6 +9,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.sportbook.Interfaces.WorkoutClickListener;
 import com.example.sportbook.Models.Workout;
 import com.example.sportbook.R;
 
@@ -17,7 +18,7 @@ import java.util.List;
 public class ListAdapterWeekWorkouts extends RecyclerView.Adapter<ListAdapterWeekWorkouts.ViewHolder> {
     final LayoutInflater inflater;
     final List<Workout> workouts;
-    static ItemClickListener clickListener;
+    static WorkoutClickListener clickListener;
 
 
     public ListAdapterWeekWorkouts(Context context, List<Workout> workouts) {
@@ -45,11 +46,11 @@ public class ListAdapterWeekWorkouts extends RecyclerView.Adapter<ListAdapterWee
         return workouts.size();
     }
 
-    public void setClickListener(ItemClickListener itemClickListener) {
+    public void setClickListener(WorkoutClickListener itemClickListener) {
         clickListener = itemClickListener;
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener{
         TextView day, title, workout;
 
         ViewHolder(View view) {
@@ -58,14 +59,22 @@ public class ListAdapterWeekWorkouts extends RecyclerView.Adapter<ListAdapterWee
             workout = view.findViewById(R.id.textview_daily_workout);
             title = view.findViewById(R.id.textview_title);
             view.setOnClickListener(this);
+            view.setOnLongClickListener(this);
         }
-
         @Override
         public void onClick(View view) {
             if (clickListener != null) clickListener.onClick(view, getAdapterPosition());
         }
-    }
-    public interface ItemClickListener {
-        void onClick(View view, int position);
+        @Override
+        public boolean onLongClick(View view) {
+            if (clickListener != null) {
+                int position = getAdapterPosition();
+                if (position != RecyclerView.NO_POSITION) {
+                    clickListener.onLongClick(view, position);
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 }

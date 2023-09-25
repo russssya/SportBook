@@ -9,10 +9,14 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.PopupMenu;
+import android.widget.Toast;
 
 import com.example.sportbook.Adapters.ListAdapterWeekWorkouts;
 import com.example.sportbook.Database.RoomDB;
+import com.example.sportbook.Interfaces.WorkoutClickListener;
 import com.example.sportbook.Models.Workout;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -20,7 +24,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements ListAdapterWeekWorkouts.ItemClickListener {
+public class MainActivity extends AppCompatActivity implements WorkoutClickListener, PopupMenu.OnMenuItemClickListener {
 
     BottomNavigationView bottomNavigationView;
     FloatingActionButton fab_create_train;
@@ -28,6 +32,7 @@ public class MainActivity extends AppCompatActivity implements ListAdapterWeekWo
     List<Workout> list_workouts = new ArrayList<>();
     ListAdapterWeekWorkouts listAdapterWeekWorkouts;
     RoomDB database;
+    Workout selected_workout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +48,7 @@ public class MainActivity extends AppCompatActivity implements ListAdapterWeekWo
         database=RoomDB.getInstance(this);
         recyclerView_weekWorkouts=findViewById(R.id.recycler_week_workouts);
         list_workouts = database.mainDAO().getAll();
+        recyclerView_weekWorkouts.setLongClickable(true);
 
         updateRecycler();
 
@@ -108,9 +114,38 @@ public class MainActivity extends AppCompatActivity implements ListAdapterWeekWo
 
     @Override
     public void onClick(View view, int position) {
-        Workout workout=list_workouts.get(position);
-        Intent intent=new Intent(MainActivity.this, ActivityTrain.class);
+        Workout workout = list_workouts.get(position);
+        Intent intent = new Intent(MainActivity.this, ActivityTrain.class);
         intent.putExtra("OLD_WORKOUT", workout);
         startActivityForResult(intent, 102);
+    }
+
+    @Override
+    public void onLongClick(View view, int position) {
+        //selected_workout = new Workout();
+        selected_workout = list_workouts.get(position);
+        showPopup(view);
+    }
+
+    private void showPopup(View view){
+        PopupMenu popupMenu=new PopupMenu(this, view);
+        popupMenu.setOnMenuItemClickListener(this);
+        popupMenu.inflate(R.menu.popup_selected_workout);
+        popupMenu.show();
+    }
+
+    @SuppressLint({"NotifyDataSetChanged", "NonConstantResourceId"})
+    @Override
+    public boolean onMenuItemClick(MenuItem item) {
+        switch(item.getItemId()){
+            case R.id.delete_workout:
+                database.mainDAO().delete(selected_workout);
+                list_workouts.remove(selected_workout);
+                listAdapterWeekWorkouts.notifyDataSetChanged();
+                Toast.makeText(this, "Workout deleted", Toast.LENGTH_SHORT).show();
+                return true;
+            default:
+                return false;
+        }
     }
 }
